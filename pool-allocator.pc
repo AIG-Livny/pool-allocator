@@ -1,0 +1,4 @@
+Name: pool-allocator
+Description: pool allocator
+Version: 0.1.0
+Cflags: -I${pcfiledir}

@@ -56,6 +56,7 @@ static inline pool_allocator* pool_create(size_t node_size) {
     pool_allocator *p = POOL_MALLOC(sizeof(pool_allocator));
     p->node_size = aligned_size;
     p->chunks_head = NULL;
+    p->empty_list = NULL;
 
     POOL_INIT_LOCK(p);
     return p;

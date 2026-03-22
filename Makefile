@@ -18,7 +18,7 @@ ARFLAGS ?= rcs
 # if not - will be cloned (git clone)
 
 # Compileable and downloadable libs
-LIBS_URLS += https://github.com/AIG-Livny/cmap.git
+#LIBS_URLS +=
 
 # Downloadable header-only libs
 LIBS_HEADERS_URLS += https://github.com/sheredom/utest.h.git

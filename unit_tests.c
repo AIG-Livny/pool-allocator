@@ -13,7 +13,7 @@ typedef struct Allocation{
 
 cvector(Allocation) allocations;
 
-void print_allocations(char* where){
+void print_allocations(const char* where){
     printf("(%s) Allocations count=%lu\n",where,cvector_size(allocations));
     cvector_iterator(Allocation) it;
     cvector_for_each_in(it, allocations) {
@@ -32,17 +32,6 @@ void* test_malloc(size_t size){
     return addr;
 }
 
-void* test_calloc(size_t nmemb, size_t size){
-    void* addr = calloc(nmemb, size);
-    cvector_push_back(allocations,(
-    (Allocation){
-        .address = addr,
-        .size = nmemb * size,
-    }));
-
-    return addr;
-}
-
 void test_free(void* ptr) {
     cvector_iterator(Allocation) it;
     bool found = false;
@@ -56,6 +45,7 @@ void test_free(void* ptr) {
 
     if ( not found ){
         printf("ERROR\n");
+        print_allocations(__FUNCTION__);
     }
 
     free(ptr);
@@ -67,7 +57,6 @@ typedef struct mystruct {
 } mystruct;
 
 #define POOL_MALLOC test_malloc
-#define POOL_CALLOC test_calloc
 #define POOL_FREE test_free
 #define POOL_CHUNK_SIZE 100
 
@@ -186,6 +175,52 @@ UTEST(test, pool_multithreaded_stress) {
     }
 
     pool_destroy(pool);
+}
+
+multipool_allocator *mp;
+
+void multipool_destructor64(void* ptr){
+    multipool_dealloc(mp,64,ptr);
+}
+
+void multipool_destructor512(void* ptr){
+    multipool_dealloc(mp,512,ptr);
+}
+
+UTEST(test, multipool_allocation_economy) {
+    cvector(mystruct*) vec64=NULL;
+    cvector(mystruct*) vec512=NULL;
+    cvector_init(vec64,100,multipool_destructor64);
+    cvector_init(vec512,100,multipool_destructor512);
+
+    mp = multipool_create();
+
+    int base_allocs = cvector_size(allocations);
+
+    for (int i = 0; i < 100; i++) {
+        cvector_push_back(vec64,multipool_alloc(mp, 64));
+        cvector_push_back(vec512,multipool_alloc(mp, 512));
+    }
+
+    int allocs_after_fill = cvector_size(allocations);
+    ASSERT_GT(allocs_after_fill, base_allocs);
+
+    // Free all
+    cvector_clear(vec64);
+    cvector_clear(vec512);
+
+    // repeat
+    for (int i = 0; i < 100; i++) {
+        cvector_push_back(vec64,multipool_alloc(mp, 64));
+        cvector_push_back(vec512,multipool_alloc(mp, 512));
+    }
+
+    // We not expect new allocations
+    ASSERT_EQ(cvector_size(allocations), allocs_after_fill);
+
+    multipool_destroy(mp);
+
+    ASSERT_EQ(cvector_size(allocations), 0);
 }
 
 UTEST_MAIN();

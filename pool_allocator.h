@@ -187,7 +187,7 @@ static inline void* multipool_alloc(multipool_allocator* mp, size_t size) {
         size_t exact_size = 16;
         for(int i=0; i<idx; i++){ exact_size *= 2; }
 
-        if ( exact_size > POOL_CHUNK_SIZE ) {
+        if ( exact_size + sizeof(void*) > POOL_CHUNK_SIZE ) {
             log_error("Pool allocator: POOL_CHUNK_SIZE=%d too small to allocate %d bytes", POOL_CHUNK_SIZE, size);
             return NULL;
         }

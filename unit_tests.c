@@ -183,15 +183,15 @@ void multipool_destructor64(void* ptr){
     multipool_dealloc(mp,64,ptr);
 }
 
-void multipool_destructor512(void* ptr){
-    multipool_dealloc(mp,512,ptr);
+void multipool_destructor32(void* ptr){
+    multipool_dealloc(mp,32,ptr);
 }
 
 UTEST(test, multipool_allocation_economy) {
     cvector(mystruct*) vec64=NULL;
-    cvector(mystruct*) vec512=NULL;
+    cvector(mystruct*) vec32=NULL;
     cvector_init(vec64,100,multipool_destructor64);
-    cvector_init(vec512,100,multipool_destructor512);
+    cvector_init(vec32,100,multipool_destructor32);
 
     mp = multipool_create();
 
@@ -199,7 +199,7 @@ UTEST(test, multipool_allocation_economy) {
 
     for (int i = 0; i < 100; i++) {
         cvector_push_back(vec64,multipool_alloc(mp, 64));
-        cvector_push_back(vec512,multipool_alloc(mp, 512));
+        cvector_push_back(vec32,multipool_alloc(mp, 32));
     }
 
     int allocs_after_fill = cvector_size(allocations);
@@ -207,12 +207,12 @@ UTEST(test, multipool_allocation_economy) {
 
     // Free all
     cvector_clear(vec64);
-    cvector_clear(vec512);
+    cvector_clear(vec32);
 
     // repeat
     for (int i = 0; i < 100; i++) {
         cvector_push_back(vec64,multipool_alloc(mp, 64));
-        cvector_push_back(vec512,multipool_alloc(mp, 512));
+        cvector_push_back(vec32,multipool_alloc(mp, 32));
     }
 
     // We not expect new allocations

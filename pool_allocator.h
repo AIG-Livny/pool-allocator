@@ -26,6 +26,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "log.h"
+
 #ifndef POOL_MALLOC
 #define POOL_MALLOC malloc
 #endif
@@ -184,6 +186,12 @@ static inline void* multipool_alloc(multipool_allocator* mp, size_t size) {
     if(mp->size_classes[idx] == NULL) {
         size_t exact_size = 16;
         for(int i=0; i<idx; i++){ exact_size *= 2; }
+
+        if ( exact_size > POOL_CHUNK_SIZE ) {
+            log_error("Pool allocator: POOL_CHUNK_SIZE=%d too small to allocate %d bytes", POOL_CHUNK_SIZE, size);
+            return NULL;
+        }
+
         mp->size_classes[idx] = pool_create(exact_size);
     }
 
